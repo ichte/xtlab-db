@@ -1,0 +1,39 @@
+<?
+/**
+ * @var $this PhpRenderer
+ */
+use XT\Db\DDL;
+?>
+<?
+echo $this->pageBreadcrumbs()->setItems(
+    [
+        'Administrator'=> $this->url('admin'),
+        'Database' => $this->url('admin', ['plugin'=>'database']),
+    ]
+)->render();
+?>
+
+<div class="p-4 w-100">
+
+    <div class="row w-100">
+        <div class="card w-100 p">
+            <div class="card-header bg-dark text-white">Database - Repairing:  <big><?=$this->database?></big></div>
+            <div class="card-block p-4">
+                <h4 class="card-title">Choose database to repair / Create ...</h4>
+                <p class="card-text">Correct database ! </p>
+                <? foreach (DDL::$tables as $table):?>
+                    <a href="<?=$this->url('admin', ['plugin'=>'database'], ['query' => ['tb'=>$table]])?>" class="btn btn-primary mb-1"><?=$table?></a>
+                <?endforeach;?>
+                <?if ($this->cols && is_array($this->cols)):?>
+                    <? foreach ($this->cols as $item):?>
+                        <p class="card-text"><?=$item?></p>
+                    <?endforeach;?>
+                <?else:?>
+                    <p><?=$this->cols?></p>
+                <?endif;?>
+
+            </div>
+        </div>
+    </div>
+
+</div>
