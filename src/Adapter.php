@@ -13,6 +13,7 @@ use Zend\Db\Sql\Insert;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Sql\SqlInterface;
+use Zend\Db\Sql\Update;
 use Zend\Hydrator\ClassMethods;
 use Zend\Hydrator\HydratorInterface;
 
@@ -184,6 +185,38 @@ class Adapter extends \Zend\Db\Adapter\Adapter
         return false;
 
     }
+
+
+    /**
+     * update_row_values
+     * @param $values
+     * @param $where
+     * @param $table
+     * @return ResultInterface
+     */
+    public function update($values, $where, $table)
+    {
+        if ($values instanceof \ArrayObject)
+            $values = $values->getArrayCopy();
+        $action = new Update($table);
+        $action->set($values);
+        $action->where($where);
+        return $this->executeSqlObject($action);
+    }
+
+    public function cell($table, $col, $where)
+    {
+        $select = new Select($table);
+        $select->columns([$col]);
+        $select->where($where);
+        $stmt = $this->sql->prepareStatementForSqlObject($select);
+        $result = $stmt->execute();
+        if ($row = $result->current()) {
+           return [$row[$col]];
+        }
+        return null;
+    }
+
 
 
 }

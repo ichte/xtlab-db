@@ -6,7 +6,7 @@ use XT\Admin\Controller\AbstractPlugin;
 use XT\Core\Common\Common;
 use XT\Core\ToolBox\MessageBox;
 use XT\Db\DDL;
-use XT\Core\System\RBAC_CONST;
+use XT\Core\System\RBAC_PERMISSION;
 use Zend\Filter\FilterChain;
 use Zend\Filter\StringToLower;
 use Zend\Filter\StringTrim;
@@ -26,9 +26,9 @@ class Database extends AbstractPlugin
     function index($i)
     {
 
-        if (!$this->ctrl->isGranted(RBAC_CONST::DB_ALTER))
+        if (!$this->ctrl->isGranted(RBAC_PERMISSION::DB_ALTER))
             return MessageBox::viewNoPermission($this->ctrl->getEvent(),
-                Common::translate('Not permission granted').':'.RBAC_CONST::DB_ALTER
+                Common::translate('Not permission granted').':'.RBAC_PERMISSION::DB_ALTER
                 );
 
 
@@ -38,9 +38,9 @@ class Database extends AbstractPlugin
         if ($database != null)
         {
             $ddl = new DDL($this->dbAdapter);
-            $rt['cols'] = $ddl->fix($database);
+            $msg = $ddl->fix($database);
 
-            return MessageBox::redirectMgs("Table $database is repaired!",
+            return MessageBox::redirectMgs( $msg,
                 $this->url('database'), '', 5);
 
         }

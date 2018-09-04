@@ -17,10 +17,9 @@ echo $this->pageBreadcrumbs()->setItems(
 
     <div class="row w-100">
         <div class="card w-100 p">
-            <div class="card-header bg-dark text-white">Database - Repairing:  <big><?=$this->database?></big></div>
+            <div class="card-header bg-dark text-white">Database - Repair</div>
             <div class="card-block p-4">
-                <h4 class="card-title">Choose database to repair / Create ...</h4>
-                <p class="card-text">Correct database ! </p>
+                <h4 class="card-title">Choose table to repair / create ...</h4>
                 <? foreach (DDL::$tables as $table):?>
                     <a href="<?=$this->url('admin', ['plugin'=>'database'], ['query' => ['tb'=>$table]])?>" class="btn btn-primary mb-1"><?=$table?></a>
                 <?endforeach;?>

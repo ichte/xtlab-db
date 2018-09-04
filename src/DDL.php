@@ -4,6 +4,7 @@ namespace XT\Db;
 use Zend\Db\Sql\Ddl\AlterTable;
 use Zend\Db\Sql\Ddl\Column\ColumnInterface;
 use Zend\Db\Sql\Ddl\Column\Integer;
+use Zend\Db\Sql\Ddl\Column\Varchar;
 use Zend\Db\Sql\Ddl\CreateTable;
 use Zend\Db\Sql\Ddl\Constraint\UniqueKey;
 use Zend\Db\Sql\Ddl\Constraint\PrimaryKey;
@@ -17,9 +18,17 @@ class DDL
     const engine_myisam = 'MyISAM';
 
     public static $tables = [
+        'optiongroups',
+        'option_items',
         'placeholder',
+        'template_inserthtml',
         'log',
-        'permission'
+        'permission',
+        'role',
+        'rolepermission',
+        'rolehierarchy',
+        'users',
+        'userrole',
     ];
 
     public $exec = true;
@@ -71,12 +80,13 @@ class DDL
         set_time_limit(60000);
         $table = str_replace("_",'',$table);
         $table = str_replace("-",'',$table);
-        return $this->$table();
+        return $this->$table();//Call Magic -  $class = "\\XT\Db\\tables\\{$method}Table";
+
     }
 
 
 
-    public function correctTable($table, $id, $engine = DDL::engine_innodb) {
+    public function correctTable($table, $id, $engine = DDL::engine_innodb, $primaryint = true, $varcharleng = 50) {
 
         $this->table = $table;
         $this->id = $id;
@@ -86,12 +96,15 @@ class DDL
 
             $tableCreate = new CreateTable($this->table);
 
-            $id = new Integer($this->id, false, null, ['autoincrement'=>true, 'AUTO_INCREMENT'=>true]);
+            $id =($primaryint) ?  new Integer($this->id, false, null, ['autoincrement'=>true, 'AUTO_INCREMENT'=>true]) :
+                                  new Varchar($this->id, $varcharleng, false, '');
+
+
             $tableCreate->addColumn($id);
 
             $constraint = new PrimaryKey($this->id);
             $tableCreate->addConstraint($constraint);
-            $tableCreate->addConstraint(new UniqueKey($this->id, $this->id.'unique'));
+           // $tableCreate->addConstraint(new UniqueKey($this->id, $this->id.'unique'));
             $tableCreate->addConstraint(new Index($this->id, $this->id));
             if ($this->exec)
                 $this->Adapter->executeDDL($tableCreate);
@@ -100,9 +113,10 @@ class DDL
         }
         else {
 
-            $this->correctColumn(new Integer($this->id, false, null,
-                ['autoincrement'=>true, 'AUTO_INCREMENT'=>true]),
-                   [new Index($this->id, $this->id)]);
+
+//            $this->correctColumn(new Integer($this->id, false, null,
+//                ['autoincrement'=>true, 'AUTO_INCREMENT'=>true]),
+//                   [new Index($this->id, $this->id)]);
 
         }
 
@@ -114,9 +128,11 @@ class DDL
         if ($this->exec)
             $this->Adapter->execute("ALTER TABLE {$this->table} CHARACTER SET = utf8 , COLLATE = utf8_bin , ENGINE = {$this->engine}");
 
-        $keys = $this->Adapter->execute("SHOW INDEX FROM {$this->table} WHERE Key_name <> 'PRIMARY'");
+        $keys = $this->Adapter->execute("SHOW INDEX FROM {$this->table} WHERE Key_name <> 'PRIMARY' AND Key_name <> '{$this->id}'");
+        //echo "SHOW INDEX FROM {$this->table} WHERE Key_name <> 'PRIMARY' AND Key_name <> '{$this->id}'";
         foreach ($keys as $key) {
-            $this->Adapter->execute("ALTER TABLE {$this->table} DROP INDEX $key[Key_name]");
+           // echo "ALTER TABLE {$this->table} DROP INDEX $key[Key_name]";
+            $this->Adapter->execute("ALTER  TABLE {$this->table} DROP INDEX $key[Key_name]");
 
         }
 
@@ -172,6 +188,9 @@ class DDL
 
     }
 
+
+
+
     public function deltecolifnotExist($colname) {
         foreach ($this->cols as $col) {
             if ($col == $colname) return;
@@ -181,6 +200,7 @@ class DDL
         $this->Adapter->executeDDL($table_update);
 
     }
+
     public function __call($method, $arguments)
     {
 
@@ -188,13 +208,38 @@ class DDL
 
         if (class_exists($class, true)) {
 
-            return $class::execute($this).' - OK '.$class;
+            return $class::execute($this).'OK : success on table => '.$method;
         }
 
         else
             return "No exist: $class";
 
     }
+
+
+    public function existFk($name, $table = null) {
+        $table = $table ?? $this->table;
+        $databae = $this->Adapter->getCurrentSchema();
+        $tb = new TableIdentifier('KEY_COLUMN_USAGE', 'information_schema');
+        $select = $this->Adapter->sql->select();
+
+        $select
+            ->from($tb)
+            ->columns(['CONSTRAINT_NAME'])
+            ->where([ 'TABLE_NAME' => $table, 'TABLE_SCHEMA'=>$databae, 'CONSTRAINT_NAME' => $name]);
+
+        $rows = $this->Adapter->get_rows_select($select);
+        return ($rows->count() > 0);
+    }
+
+    public function dropFk($onstraint, $table = null) {
+        $table = $table ?? $this->table;
+        if ($this->existFk($onstraint, $table)) {
+            $this->Adapter->execute("ALTER TABLE `$table` DROP FOREIGN KEY `$onstraint`");
+        }
+
+    }
+
 
 
 }
