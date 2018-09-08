@@ -18,10 +18,11 @@ class DDL
     const engine_myisam = 'MyISAM';
 
     public static $tables = [
-        'optiongroups',
+        //'optiongroups',
         'option_items',
         'placeholder',
         'template_inserthtml',
+        'template_blockhtml',
         'log',
         'permission',
         'role',
