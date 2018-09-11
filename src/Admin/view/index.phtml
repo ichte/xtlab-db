@@ -11,26 +11,20 @@ use XT\Db\DDL;
         'listactions' => $listactions,
         'currentNameaction' => $currentNameaction
     ])?>
-<div class="p-4 w-100">
+<div class="card w-100 my-4">
+    <div class="card-header bg-dark text-white">Database - Repair</div>
+    <div class="card-block p-4">
+        <h4 class="card-title">Choose table to repair / create ...</h4>
+        <? foreach (DDL::$tables as $table):?>
+            <a href="<?=$this->url('admin', ['plugin'=>'database'], ['query' => ['tb'=>$table]])?>" class="btn btn-primary mb-1"><?=$table?></a>
+        <?endforeach;?>
+        <?if ($this->cols && is_array($this->cols)):?>
+            <? foreach ($this->cols as $item):?>
+                <p class="card-text"><?=$item?></p>
+            <?endforeach;?>
+        <?else:?>
+            <p><?=$this->cols?></p>
+        <?endif;?>
 
-    <div class="row w-100">
-        <div class="card w-100 p">
-            <div class="card-header bg-dark text-white">Database - Repair</div>
-            <div class="card-block p-4">
-                <h4 class="card-title">Choose table to repair / create ...</h4>
-                <? foreach (DDL::$tables as $table):?>
-                    <a href="<?=$this->url('admin', ['plugin'=>'database'], ['query' => ['tb'=>$table]])?>" class="btn btn-primary mb-1"><?=$table?></a>
-                <?endforeach;?>
-                <?if ($this->cols && is_array($this->cols)):?>
-                    <? foreach ($this->cols as $item):?>
-                        <p class="card-text"><?=$item?></p>
-                    <?endforeach;?>
-                <?else:?>
-                    <p><?=$this->cols?></p>
-                <?endif;?>
-
-            </div>
-        </div>
     </div>
-
 </div>

@@ -23,6 +23,8 @@ class DDL
         'placeholder',
         'template_inserthtml',
         'template_blockhtml',
+        'viewplace',
+        'global_listener',
         'log',
         'permission',
         'role',
